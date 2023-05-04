@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using FinopsSolution.Service.Resources;
+using FinopsSolution.Service.DAL;
 
 namespace FinopsSolution.Service.APIs.CostManagement
 {
@@ -46,15 +47,15 @@ namespace FinopsSolution.Service.APIs.CostManagement
                                             .ReadFromJsonAsync<JsonElement>();
                     var AdvisorRecommendationContent = (JObject)JsonConvert.DeserializeObject(AdvisorRecommendationData.ToString());
                     var AdvisorRecommendationJArray = AdvisorRecommendationContent["value"].Value<JArray>();
-                    List<AdvisorRecommendationDto> listAdvisorRecommendations = new List<AdvisorRecommendationDto>();
+                    //List<AdvisorRecommendationDto> listAdvisorRecommendations = new List<AdvisorRecommendationDto>();
                     foreach(JObject recommendation in AdvisorRecommendationJArray)
                     {
-                        AdvisorRecommendationDto advisorRecommendation = new AdvisorRecommendationDto();
-                        advisorRecommendation.category = recommendation["properties"]["category"].ToString();
+                        AdvisorRecommendationDto advisorRecommendation = new AdvisorRecommendationDto(recommendation["properties"]["category"].ToString(), recommendation["properties"]["shortDescription"]["solution"].ToString());
+                        //advisorRecommendation.category = recommendation["properties"]["category"].ToString();
                         advisorRecommendation.ImpactedResource = recommendation["properties"]["impactedValue"].ToString();
-                        advisorRecommendation.recommendationName = recommendation["properties"]["shortDescription"]["solution"].ToString();
-                        advisorRecommendation.id  = recommendation["id"].ToString();
-                        listAdvisorRecommendations.Add(advisorRecommendation);
+                        await AdvisorRecommendationDAL.InsertRecommendationToTable(advisorRecommendation);
+                        advisorRecommendation.Id  = recommendation["id"].ToString();
+
                     }
                     
                 }

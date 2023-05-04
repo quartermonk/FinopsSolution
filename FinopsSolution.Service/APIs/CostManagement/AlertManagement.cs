@@ -27,20 +27,6 @@ namespace FinopsSolution.Service.APIs.CostManagement
             var subscriptions = Utils.subscriptionIdList.Split(',').ToList();
             _httpClient = authentication.GenerateClient().Result;
 
-            //if (_httpClient == null)
-            //{
-            //    await _semaphoreSlim
-            //            .WaitAsync()
-            //            .ConfigureAwait(false);
-
-            //    _httpClient = new HttpClient();
-
-            //    _semaphoreSlim.Release();
-            //}
-
-            //var token = await AzureIdentityService.GetToken(new(Utils.TenantId, Utils.ClientId, Utils.ClientSecret));
-            //_httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
             var alertJsonContent = new StringContent(createalertPayload(),
                                                 Encoding.UTF8,
                                                 "application/json");

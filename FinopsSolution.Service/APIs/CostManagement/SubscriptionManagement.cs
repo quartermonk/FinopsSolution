@@ -1,4 +1,6 @@
-﻿using FinopsSolution.Service.Resources;
+﻿using FinopsSolution.Service.DAL;
+using FinopsSolution.Service.Dto;
+using FinopsSolution.Service.Resources;
 using FinopsSolution.Service.Token;
 using FinopsSolution.Service.Utilities;
 using System;
@@ -25,20 +27,6 @@ namespace FinopsSolution.Service.APIs.CostManagement
             var subscriptions = Utils.subscriptionIdList.Split(',').ToList();
             _httpClient = authentication.GenerateClient().Result;
 
-            //if (_httpClient == null)
-            //{
-            //    await _semaphoreSlim
-            //            .WaitAsync()
-            //            .ConfigureAwait(false);
-
-            //    _httpClient = new HttpClient();
-
-            //    _semaphoreSlim.Release();
-            //}
-
-            //var token = await AzureIdentityService.GetToken(new(Utils.TenantId, Utils.ClientId, Utils.ClientSecret));
-            //_httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
             var jsonContent = new StringContent(GetBillingMonthToDateJson(),
                                                 Encoding.UTF8,
                                                 "application/json");
@@ -47,6 +35,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
             {
                 foreach (var subscription in subscriptions)
                 {
+                    SubscriptionDto actualsubscriptioncostDto = new SubscriptionDto(subscription, "ActualCost");
                     var subscriptionCostUrl = $"https://management.azure.com/subscriptions/{subscription}/providers/Microsoft.CostManagement/query?api-version=2021-10-01";
 
                     var subscriptionCostResponse = await _httpClient
@@ -62,11 +51,20 @@ namespace FinopsSolution.Service.APIs.CostManagement
                     var row = subscriptionCostData
                                 .GetProperty("properties")
                                 .GetProperty("rows");
-                    await Console.Out.WriteLineAsync("subcost");
-                    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+                    if (row.ToString() != "[]")
+                    {
+                        var rows = row.EnumerateArray();
+                        actualsubscriptioncostDto.Cost = rows
+                                            .First()
+                                            .EnumerateArray()
+                                            .ElementAt(elementBillingValue)
+                                            .GetDouble().ToString();
+                    }
+                    await SubscriptionManagementDAL.InsertSubscriptionCostToTable(actualsubscriptioncostDto);
                     var forcastJsonContent = new StringContent(GetSubscriptionForcastToJson(),
                                                 Encoding.UTF8,
                                                 "application/json");
+                    SubscriptionDto forcastSubscriptionCostDto = new SubscriptionDto(subscription, "ForcastCost");
                     var SubscriptionForcastCostUrl = $"https://management.azure.com/subscriptions/{subscription}/providers/Microsoft.CostManagement/forecast?api-version=2022-10-01";
 
                     var SubscriptionForcastCostResponse = await _httpClient
@@ -82,10 +80,19 @@ namespace FinopsSolution.Service.APIs.CostManagement
                     var SubscriptionForcastCost = SubscriptionForcastCostData
                                 .GetProperty("properties")
                                 .GetProperty("rows");
-                    await Console.Out.WriteLineAsync( "Forcast"  );
+                    if (SubscriptionForcastCost.ToString() != "[]")
+                    {
+                        var rows = SubscriptionForcastCost.EnumerateArray();
+                        forcastSubscriptionCostDto.Cost = rows
+                                            .First()
+                                            .EnumerateArray()
+                                            .ElementAt(elementBillingValue)
+                                            .GetDouble().ToString();
+                    }
+                    await SubscriptionManagementDAL.InsertSubscriptionCostToTable(forcastSubscriptionCostDto);
 
+                    }
                 }
-            }
             catch (Exception)
             {
                 throw;

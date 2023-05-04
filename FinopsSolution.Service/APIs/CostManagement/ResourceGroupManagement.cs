@@ -1,4 +1,5 @@
-﻿using FinopsSolution.Service.Dto;
+﻿using FinopsSolution.Service.DAL;
+using FinopsSolution.Service.Dto;
 using FinopsSolution.Service.Resources;
 using FinopsSolution.Service.Token;
 using FinopsSolution.Service.Utilities;
@@ -56,7 +57,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
                     foreach (var item in ResourceGroupList)
                     {
                         _httpClient = authentication.GenerateClient().Result;
-                        ResourceGroupDto resourceGroupDto = new ResourceGroupDto();
+                        ResourceGroupDto resourceGroupDto = new ResourceGroupDto(item["name"].ToString(), item["location"].ToString());
                         resourceGroupDto.id = item["id"].ToString();
                         resourceGroupDto.name = item["name"].ToString();
                         resourceGroupDto.location = item["location"].ToString();
@@ -88,6 +89,16 @@ namespace FinopsSolution.Service.APIs.CostManagement
                             var ResourceGroupCost = ResourceGroupCostData
                                         .GetProperty("properties")
                                         .GetProperty("rows");
+                            if (ResourceGroupCost.ToString() != "[]")
+                            {
+                                var rows = ResourceGroupCost.EnumerateArray();
+                                resourceGroupDto.cost = rows
+                                                    .First()
+                                                    .EnumerateArray()
+                                                    .ElementAt(elementBillingValue)
+                                                    .GetDouble().ToString();
+                            }
+                            await ResourceGroupDAL.InsertRecommendationToTable(resourceGroupDto);
                             Thread.Sleep(2000);
                             Console.WriteLine(ResourceGroupCost);
                         }

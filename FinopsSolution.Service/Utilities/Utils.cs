@@ -22,8 +22,8 @@ namespace FinopsSolution.Service.Utilities
         public const int EmailPort = 587;
         public const string EmailCredential = "email";
         public const string EmailPassword = "password";
-
-        public const int RunCostManagemementApiInSeconds = 3600; //seconds to run the job
-        public const int RunEmailRescheduleInSeconds = 3600; //seconds to run the job
+        public const string StorageAccountConnStr = "DefaultEndpointsProtocol=https;AccountName=akshayfinopsdata;AccountKey=ofRdvWqxqN1SyaVRSwBwHyXjUXWOKVurySMMA3ac4bnjxLKFPzcDb8WBzvxHMw4jePqY1155Ldxt+ASt/l/+zw==;EndpointSuffix=core.windows.net";
+        public const int RunCostManagemementApiInSeconds = 300; //seconds to run the job
+        public const int RunEmailRescheduleInSeconds = 300; //seconds to run the job
     }
 }
