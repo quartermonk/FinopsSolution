@@ -5,6 +5,7 @@ using FinopsSolution.Service.Utilities;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
             var alertJsonContent = new StringContent(createalertPayload(),
                                                 Encoding.UTF8,
                                                 "application/json");
-            var AlertUrl = $"https://management.azure.com/subscriptions/{Utils.subscriptionIdList}/providers/Microsoft.Consumption/budgets/{"test-akshay"}/?api-version=2019-10-01";
+            var AlertUrl = $"https://management.azure.com/subscriptions/{Utils.subscriptionIdList}/providers/Microsoft.Consumption/budgets/test-akshay/?api-version=2019-10-01";
 
             var AlertResponse = await _httpClient
                                 .PutAsync(AlertUrl, alertJsonContent)
@@ -58,18 +59,19 @@ namespace FinopsSolution.Service.APIs.CostManagement
             root.properties.timePeriod = new TimePeriod();
             root.properties.notifications = new Notifications();
             root.properties.notifications.Actual_GreaterThan_80_Percent = new ActualGreaterThan80Percent();
-            root.eTag = "";
+            root.eTag = "1d34d016a593709";
             root.properties.amount = 100;
             root.properties.category = "Cost";
             root.properties.timeGrain = "Monthly";
-            root.properties.timePeriod.startDate = DateTime.Now;
-            root.properties.timePeriod.endDate = DateTime.Now.AddYears(1);
+            DateTime date = DateTime.Now;
+            root.properties.timePeriod.startDate = new DateTime( date.Year,date.Month,1).ToString("yyyy-MM-ddTHH:mm:ssZ");
+            root.properties.timePeriod.endDate = new DateTime(date.Year, date.Month, 1).AddYears(1).ToString("yyyy-MM-ddTHH:mm:ssZ");
             root.properties.notifications.Actual_GreaterThan_80_Percent.enabled = true;
             root.properties.notifications.Actual_GreaterThan_80_Percent.@operator = "GreaterThan";
             root.properties.notifications.Actual_GreaterThan_80_Percent.threshold = 80;
             root.properties.notifications.Actual_GreaterThan_80_Percent.locale = "en-US";
             root.properties.notifications.Actual_GreaterThan_80_Percent.thresholdType = "Actual";
-            root.properties.notifications.Actual_GreaterThan_80_Percent.contactEmails = new List<string>() { "akshaykumar22@kpmg.com", "monaliroutray@kpmg.com" };
+            root.properties.notifications.Actual_GreaterThan_80_Percent.contactEmails = new List<string>() { "akshaykumar22@kpmg.com" };
 
             string body = JsonConvert.SerializeObject(root);
             return body;

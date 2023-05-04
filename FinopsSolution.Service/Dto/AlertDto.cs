@@ -43,8 +43,8 @@ namespace FinopsSolution.Service.Dto
 
     public class TimePeriod
     {
-        public DateTime startDate { get; set; }
-        public DateTime endDate { get; set; }
+        public string startDate { get; set; }
+        public string endDate { get; set; }
     }
 
 
