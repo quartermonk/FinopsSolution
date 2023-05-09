@@ -1,4 +1,5 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using Azure;
+using Azure.Data.Tables;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,12 +8,17 @@ using System.Threading.Tasks;
 
 namespace FinopsSolution.Service.Dto
 {
-    internal class SubscriptionDto:TableEntity
+    internal class SubscriptionDto:ITableEntity
     {
-        public SubscriptionDto(string subscriptionID, string costCategory)
+        public SubscriptionDto(DateTime PartitionKey, String RowKey)
         {
-            PartitionKey = subscriptionID; RowKey = costCategory;
+            this.PartitionKey = PartitionKey.ToString("yyyy-MM-dd"); this.RowKey = RowKey;
         }
+        public string CostType { get; set; }
         public string Cost { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; }
     }
 }

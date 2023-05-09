@@ -35,7 +35,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
             {
                 foreach (var subscription in subscriptions)
                 {
-                    SubscriptionDto actualsubscriptioncostDto = new SubscriptionDto(subscription, "ActualCost");
+                    SubscriptionDto actualsubscriptioncostDto = new SubscriptionDto(DateTime.Now,"Actual Cost");
                     var subscriptionCostUrl = $"https://management.azure.com/subscriptions/{subscription}/providers/Microsoft.CostManagement/query?api-version=2021-10-01";
 
                     var subscriptionCostResponse = await _httpClient
@@ -59,12 +59,14 @@ namespace FinopsSolution.Service.APIs.CostManagement
                                             .EnumerateArray()
                                             .ElementAt(elementBillingValue)
                                             .GetDouble().ToString();
+                        actualsubscriptioncostDto.CostType = "actual cost";
                     }
                     await SubscriptionManagementDAL.InsertSubscriptionCostToTable(actualsubscriptioncostDto);
                     var forcastJsonContent = new StringContent(GetSubscriptionForcastToJson(),
                                                 Encoding.UTF8,
                                                 "application/json");
-                    SubscriptionDto forcastSubscriptionCostDto = new SubscriptionDto(subscription, "ForcastCost");
+                    SubscriptionDto forcastSubscriptionCostDto = new SubscriptionDto(DateTime.Now, "Forcast Cost");
+                   
                     var SubscriptionForcastCostUrl = $"https://management.azure.com/subscriptions/{subscription}/providers/Microsoft.CostManagement/forecast?api-version=2022-10-01";
 
                     var SubscriptionForcastCostResponse = await _httpClient
@@ -88,6 +90,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
                                             .EnumerateArray()
                                             .ElementAt(elementBillingValue)
                                             .GetDouble().ToString();
+                        forcastSubscriptionCostDto.CostType = "Forcast Cost";
                     }
                     await SubscriptionManagementDAL.InsertSubscriptionCostToTable(forcastSubscriptionCostDto);
 

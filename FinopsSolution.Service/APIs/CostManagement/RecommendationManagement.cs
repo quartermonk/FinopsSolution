@@ -50,11 +50,11 @@ namespace FinopsSolution.Service.APIs.CostManagement
                     //List<AdvisorRecommendationDto> listAdvisorRecommendations = new List<AdvisorRecommendationDto>();
                     foreach(JObject recommendation in AdvisorRecommendationJArray)
                     {
-                        AdvisorRecommendationDto advisorRecommendation = new AdvisorRecommendationDto(recommendation["properties"]["category"].ToString(), recommendation["properties"]["shortDescription"]["solution"].ToString());
-                        //advisorRecommendation.category = recommendation["properties"]["category"].ToString();
+                        AdvisorRecommendationDto advisorRecommendation = new AdvisorRecommendationDto(recommendation["properties"]["impactedValue"].ToString(), recommendation["properties"]["shortDescription"]["solution"].ToString());
+                        advisorRecommendation.Recommendation = recommendation["properties"]["shortDescription"]["solution"].ToString();
                         advisorRecommendation.ImpactedResource = recommendation["properties"]["impactedValue"].ToString();
                         await AdvisorRecommendationDAL.InsertRecommendationToTable(advisorRecommendation);
-                        advisorRecommendation.Id  = recommendation["id"].ToString();
+                        //advisorRecommendation.Id  = recommendation["id"].ToString();
 
                     }
                     

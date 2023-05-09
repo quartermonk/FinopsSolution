@@ -1,7 +1,7 @@
-﻿using FinopsSolution.Service.Dto;
+﻿using Azure.Data.Tables.Models;
+using Azure.Data.Tables;
+using FinopsSolution.Service.Dto;
 using FinopsSolution.Service.Utilities;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,12 +16,16 @@ namespace FinopsSolution.Service.DAL
         {
             try
             {
-                var account = CloudStorageAccount.Parse(Utils.StorageAccountConnStr);
-                var client = account.CreateCloudTableClient();
-                var table = client.GetTableReference("AdvisorRecommendation");
-                //table.CreateIfNotExistsAsync();
-                TableOperation operation = TableOperation.InsertOrMerge(advisorRecommendation);
-                await table.ExecuteAsync(operation).ConfigureAwait(false);
+                var serviceClient = new TableServiceClient(
+                                        new Uri(Utils.storageUri),
+                                        new TableSharedKeyCredential(Utils.accountName, Utils.storageAccountKey));
+                TableItem table = serviceClient.CreateTableIfNotExists("AdvisorRecommendation");
+
+                var tableClient = new TableClient(
+                                        new Uri(Utils.storageUri),
+                                        "AdvisorRecommendation",
+                                        new TableSharedKeyCredential(Utils.accountName, Utils.storageAccountKey));
+                tableClient.UpsertEntity(advisorRecommendation);
             }
             catch (Exception ex)
             {

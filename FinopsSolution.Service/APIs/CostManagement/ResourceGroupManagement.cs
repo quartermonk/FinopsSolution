@@ -57,7 +57,7 @@ namespace FinopsSolution.Service.APIs.CostManagement
                     foreach (var item in ResourceGroupList)
                     {
                         _httpClient = authentication.GenerateClient().Result;
-                        ResourceGroupDto resourceGroupDto = new ResourceGroupDto(item["name"].ToString(), item["location"].ToString());
+                        ResourceGroupDto resourceGroupDto = new ResourceGroupDto(DateTime.Now, item["name"].ToString());
                         resourceGroupDto.id = item["id"].ToString();
                         resourceGroupDto.name = item["name"].ToString();
                         resourceGroupDto.location = item["location"].ToString();

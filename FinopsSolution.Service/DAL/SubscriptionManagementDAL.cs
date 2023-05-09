@@ -1,7 +1,7 @@
-﻿using FinopsSolution.Service.Dto;
+﻿using Azure.Data.Tables;
+using Azure.Data.Tables.Models;
+using FinopsSolution.Service.Dto;
 using FinopsSolution.Service.Utilities;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,12 +16,17 @@ namespace FinopsSolution.Service.DAL
         {
             try
             {
-                var account = CloudStorageAccount.Parse(Utils.StorageAccountConnStr);
-                var client = account.CreateCloudTableClient();
-                var table = client.GetTableReference("SubscriptionDetails");
-                await table.CreateIfNotExistsAsync().ConfigureAwait(false);
-                TableOperation operation = TableOperation.InsertOrMerge(subscription);
-                await table.ExecuteAsync(operation).ConfigureAwait(false);
+                var serviceClient = new TableServiceClient(
+                                        new Uri(Utils.storageUri),
+                                        new TableSharedKeyCredential(Utils.accountName, Utils.storageAccountKey));
+                TableItem table = serviceClient.CreateTableIfNotExists("SubscriptionDetails");
+
+                var tableClient = new TableClient(
+                                        new Uri(Utils.storageUri),
+                                        "SubscriptionDetails",
+                                        new TableSharedKeyCredential(Utils.accountName, Utils.storageAccountKey));
+                tableClient.UpsertEntity(subscription);
+                
             }
             catch (Exception ex)
             {
