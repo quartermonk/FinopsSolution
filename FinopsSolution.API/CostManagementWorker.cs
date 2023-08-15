@@ -1,53 +1,42 @@
-﻿using FinopsSolution.Service.APIs.CostManagement;
-using FinopsSolution.Service.Utilities;
+﻿using FinopsSolution.API.Services;
+using Microsoft.Extensions.Options;
 
-namespace FinopsSolution.API
+namespace FinopsSolution.API;
+
+internal class CostManagementWorker : BackgroundService
 {
-    public class CostManagementWorker : IHostedService, IDisposable
+    private readonly PeriodicTimer _timer;
+    private readonly CostManagementService _costManagementService;
+    private readonly ILogger<CostManagementWorker> _logger;
+
+    public CostManagementWorker(CostManagementService costManagementService,
+                                IOptions<CostManagementWorkerSettings> options,
+                                ILogger<CostManagementWorker> logger)
     {
-        private Timer _timer = null;
+        _timer = new PeriodicTimer(TimeSpan.FromMinutes(options.Value.JobIntervalInMinutes));
+        _costManagementService = costManagementService ?? throw new ArgumentNullException(nameof(costManagementService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+    public override async Task StartAsync(CancellationToken cancellationToken)
+    {
+        await _costManagementService.InitializeAsync();
+        await base.StartAsync(cancellationToken);
+    }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        do
         {
-            _timer = new Timer(RunCostManagementService, null, TimeSpan.Zero,
-            TimeSpan.FromSeconds(Utils.RunCostManagemementApiInSeconds));
-
-            //_timer = new Timer(RunListResourceGroupService, null, TimeSpan.Zero,
-            //TimeSpan.FromSeconds(Utils.RunCostManagemementApiInSeconds));
-
-            return Task.CompletedTask;
+            _logger.LogInformation("CostManagement job triggered.");
+            await _costManagementService.CallSubscriptionManagement();
         }
+        while (await _timer.WaitForNextTickAsync(stoppingToken) && !stoppingToken.IsCancellationRequested);
+    }
 
-
-        private void RunCostManagementService(object state)
-        {
-            
-            var task = Task.Run(async () => await CostManagementService.callSubscriptionManagement());
-            //var task2 = Task.Run(async () => await CostManagementService.callResourceGroupManagement());
-            task.Wait();
-            //task2.Wait();
-        }
-
-        //private void RunListResourceGroupService(object state)
-        //{
-
-        //    var task = Task.Run(async () => await CostManagementService.AzureListResourceGroups());
-        //    task.Wait();
-        //}
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            
-
-            _timer?.Change(Timeout.Infinite, 0);
-
-            return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-            _timer?.Dispose();
-            GC.SuppressFinalize(this);
-        }
+    public override void Dispose()
+    {
+        _timer.Dispose();
+        base.Dispose();
     }
 }
